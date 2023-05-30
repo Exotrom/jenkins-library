@@ -460,6 +460,14 @@ spec:
           - STAGES
           - STEPS
         default: "WhiteSource Security Vulnerability Report"
+      - name: additionalContainerScan
+        type: bool
+        description: "Run an additional whitesource scan for the created docker image in addition to the application scan."
+        scope:
+          - GENERAL
+          - STAGES
+          - STEPS
+        default: false
         # Global maven settings, should be added to all maven steps
       - name: projectSettingsFile
         type: string
