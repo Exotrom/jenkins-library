@@ -1,7 +1,6 @@
 package npm
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -90,7 +89,7 @@ func (u *utilsBundle) GetExecRunner() ExecRunner {
 // SetNpmRegistries configures the given npm registries.
 // CAUTION: This will change the npm configuration in the user's home directory.
 func (exec *Execute) SetNpmRegistries() error {
-	execRunner := exec.Utils.GetExecRunner()
+	/*execRunner := exec.Utils.GetExecRunner()
 	const npmRegistry = "registry"
 
 	var buffer bytes.Buffer
@@ -112,7 +111,7 @@ func (exec *Execute) SetNpmRegistries() error {
 		if err != nil {
 			return err
 		}
-	}
+	}*/
 
 	return nil
 }

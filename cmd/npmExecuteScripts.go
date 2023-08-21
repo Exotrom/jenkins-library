@@ -79,9 +79,16 @@ func runNpmExecuteScripts(npmExecutor npm.Executor, config *npmExecuteScriptsOpt
 	commonPipelineEnvironment.custom.buildSettingsInfo = buildSettingsInfo
 
 	if config.Publish {
-		packageJSONFiles, err := npmExecutor.FindPackageJSONFilesWithExcludes(config.BuildDescriptorExcludeList)
+		allPackageJSONFiles, err := npmExecutor.FindPackageJSONFilesWithExcludes(config.BuildDescriptorExcludeList)
 		if err != nil {
 			return err
+		}
+
+		packageJSONFiles := make([]string, 0)
+		for _, p := range allPackageJSONFiles {
+			if p != "package.json" {
+				packageJSONFiles = append(packageJSONFiles, p)
+			}
 		}
 
 		err = npmExecutor.PublishAllPackages(packageJSONFiles, config.RepositoryURL, config.RepositoryUsername, config.RepositoryPassword, config.PackBeforePublish)

@@ -110,6 +110,7 @@ func (exec *Execute) publish(packageJSON, registry, username, password string, p
 
 		if len(scope) > 0 {
 			npmrc.Set(fmt.Sprintf("%s:registry", scope), registry)
+			log.Entry().Debugf("adding %s:registry %s", scope, registry)
 		}
 
 		// set registry auth
@@ -189,9 +190,37 @@ func (exec *Execute) publish(packageJSON, registry, username, password string, p
 			}
 		}
 	} else {
-		err := execRunner.RunExecutable("npm", "publish", "--userconfig", npmrc.filepath, "--registry", registry)
+		oldWorkingDirectory, err := exec.Utils.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory before executing npm scripts: %w", err)
+		}
+
+		npmrcPath, err := filepath.Abs(npmrc.filepath)
+		if err != nil {
+			return fmt.Errorf("failed to get npmrc file before execution npm scripts: %w", err)
+		}
+
+		dir := filepath.Dir(packageJSON)
+		err = exec.Utils.Chdir(dir)
+		if err != nil {
+			return fmt.Errorf("failed to change into directory for executing script: %w", err)
+		}
+
+		publishArgs := make([]string, 0)
+		publishArgs = append(publishArgs, "publish", "--userconfig", npmrcPath, "--registry", registry)
+
+		if len(scope) > 0 {
+			publishArgs = append(publishArgs, fmt.Sprintf("--%s:registry=%s", scope, registry))
+		}
+
+		err = execRunner.RunExecutable("npm", publishArgs...)
 		if err != nil {
 			return errors.Wrap(err, "failed publishing artifact")
+		}
+
+		err = exec.Utils.Chdir(oldWorkingDirectory)
+		if err != nil {
+			return fmt.Errorf("failed to change back into original directory: %w", err)
 		}
 	}
 
