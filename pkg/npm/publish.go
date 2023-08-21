@@ -31,7 +31,7 @@ func (pd *npmMinimalPackageDescriptor) Scope() string {
 }
 
 // PublishAllPackages executes npm publish for all package.json files defined in packageJSONFiles list
-func (exec *Execute) PublishAllPackages(packageJSONFiles []string, registry, username, password string, packBeforePublish bool) error {
+func (exec *Execute) PublishAllPackages(packageJSONFiles []string, registry, username, password string, packBeforePublish bool, useWorkspaces bool) error {
 	for _, packageJSON := range packageJSONFiles {
 		log.Entry().Infof("triggering publish for %s", packageJSON)
 
@@ -43,7 +43,7 @@ func (exec *Execute) PublishAllPackages(packageJSONFiles []string, registry, use
 			return fmt.Errorf("package.json file '%s' not found: %w", packageJSON, err)
 		}
 
-		err = exec.publish(packageJSON, registry, username, password, packBeforePublish)
+		err = exec.publish(packageJSON, registry, username, password, packBeforePublish, useWorkspaces)
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ func (exec *Execute) PublishAllPackages(packageJSONFiles []string, registry, use
 }
 
 // publish executes npm publish for package.json
-func (exec *Execute) publish(packageJSON, registry, username, password string, packBeforePublish bool) error {
+func (exec *Execute) publish(packageJSON, registry, username, password string, packBeforePublish bool, useWorkspaces bool) error {
 	execRunner := exec.Utils.GetExecRunner()
 
 	oldWorkingDirectory, err := exec.Utils.Getwd()
@@ -195,7 +195,17 @@ func (exec *Execute) publish(packageJSON, registry, username, password string, p
 			return fmt.Errorf("failed to change back into original directory: %w", err)
 		}
 	} else {
-		err := execRunner.RunExecutable("npm", "publish", "--userconfig", npmrc.filepath, "--registry", registry)
+		publishArgs := append(make([]string, 0), "publish", "--userconfig", npmrc.filepath, "--registry", registry)
+
+		if len(scope) > 0 {
+			publishArgs = append(publishArgs, fmt.Sprintf("--%s:registry=%s", scope, registry))
+		}
+
+		if useWorkspaces {
+			publishArgs = append(publishArgs, "--workspaces")
+		}
+
+		err = execRunner.RunExecutable("npm", publishArgs...)
 		if err != nil {
 			return errors.Wrap(err, "failed publishing artifact")
 		}

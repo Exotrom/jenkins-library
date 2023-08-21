@@ -96,6 +96,14 @@ spec:
           - STEPS
           - STAGES
           - PARAMETERS
+      - name: useWorkspaces
+        type: bool
+        description: Use npm workspaces to publish artifacts.
+        scope:
+          - STEPS
+          - STAGES
+          - PARAMETERS
+        default: false
       - name: repositoryUrl
         type: string
         description: Url to the repository to which the project artifacts should be published.
